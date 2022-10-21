@@ -78,10 +78,7 @@ open class UIElement {
     /// Does not include parameterized attributes.
     open func attributes() throws -> [Attribute] {
         let attrs = try attributesAsStrings()
-        for attr in attrs where Attribute(rawValue: attr) == nil {
-            print("Unrecognized attribute: \(attr)")
-        }
-        return attrs.compactMap({ Attribute(rawValue: $0) })
+        return attrs.map(Attribute.init(rawValue:))
     }
 
     // This version is named differently so the caller doesn't have to specify the return type when
