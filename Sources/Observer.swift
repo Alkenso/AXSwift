@@ -89,7 +89,7 @@ public final class Observer {
             AXObserverGetRunLoopSource(axObserver),
             CFRunLoopMode.defaultMode)
     }
-
+    
     /// Adds a notification for the observer to watch.
     ///
     /// - parameter notification: The name of the notification to watch for.
@@ -102,15 +102,30 @@ public final class Observer {
     ///           that the system-wide element does not support notifications).
     public func addNotification(_ notification: AXNotification,
                                 forElement element: UIElement) throws {
+        try addNotification(notification.rawValue, forElement: element)
+    }
+    
+    /// Adds a notification for the observer to watch.
+    ///
+    /// - parameter notification: The name of the notification to watch for.
+    /// - parameter forElement: The element to watch for the notification on. Must belong to the
+    ///                         application this observer was created on.
+    /// - seeAlso: [Notificatons](https://developer.apple.com/library/mac/documentation/AppKit/Reference/NSAccessibility_Protocol_Reference/index.html#//apple_ref/c/data/NSAccessibilityAnnouncementRequestedNotification)
+    /// - note: The underlying API returns an error if the notification is already added, but that
+    ///         error is not passed on for consistency with `start()` and `stop()`.
+    /// - throws: `Error.NotificationUnsupported`: The element does not support notifications (note
+    ///           that the system-wide element does not support notifications).
+    public func addNotification(_ notification: String,
+                                forElement element: UIElement) throws {
         let selfPtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         let error = AXObserverAddNotification(
-            axObserver, element.element, notification.rawValue as CFString, selfPtr
+            axObserver, element.element, notification as CFString, selfPtr
         )
         guard error == .success || error == .notificationAlreadyRegistered else {
             throw error
         }
     }
-
+    
     /// Removes a notification from the observer.
     ///
     /// - parameter notification: The name of the notification to stop watching.
@@ -121,8 +136,21 @@ public final class Observer {
     ///           that the system-wide element does not support notifications).
     public func removeNotification(_ notification: AXNotification,
                                    forElement element: UIElement) throws {
+        try removeNotification(notification.rawValue, forElement: element)
+    }
+    
+    /// Removes a notification from the observer.
+    ///
+    /// - parameter notification: The name of the notification to stop watching.
+    /// - parameter forElement: The element to stop watching the notification on.
+    /// - note: The underlying API returns an error if the notification is not present, but that
+    ///         error is not passed on for consistency with `start()` and `stop()`.
+    /// - throws: `Error.NotificationUnsupported`: The element does not support notifications (note
+    ///           that the system-wide element does not support notifications).
+    public func removeNotification(_ notification: String,
+                                   forElement element: UIElement) throws {
         let error = AXObserverRemoveNotification(
-            axObserver, element.element, notification.rawValue as CFString
+            axObserver, element.element, notification as CFString
         )
         guard error == .success || error == .notificationNotRegistered else {
             throw error
